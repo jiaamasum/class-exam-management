@@ -3,6 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+#others
+SRS_extracted.txt
+try_to_do.md
+CHANGES.md
+.SRS_extracted.txt
+.try_to_do.md
+.CHANGES.md
+
 # Django + local settings
 *.log
 *.pot

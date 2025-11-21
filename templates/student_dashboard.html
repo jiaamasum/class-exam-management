@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - CEMS{% endblock %}
+
+{% block topbar %}
+<div class="brand">
+    <span class="brand-mark">C</span>
+    <div class="brand-text">
+        <strong>CEMS</strong>
+        <small>Class & Exam Management</small>
+    </div>
+</div>
+<div class="top-actions">
+    <div class="status-dot online"></div>
+    <span class="status-label">Logged in as Student</span>
+    <div class="chip">Student</div>
+    <a class="btn ghost" href="{% url 'accounts:logout' %}">Logout</a>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-group">
+    <p class="sidebar-label">Student</p>
+    <nav class="menu">
+        <a href="#overview" class="menu-link active">Overview</a>
+        <a href="#class" class="menu-link">Current class</a>
+        <a href="#exams" class="menu-link">Upcoming exams</a>
+        <a href="#results" class="menu-link">Results</a>
+        <a href="#history" class="menu-link">Previous years</a>
+    </nav>
+</div>
+<div class="sidebar-group muted">
+    <p class="sidebar-label">Notes</p>
+    <div class="pill-list">
+        <span class="pill">Read-only</span>
+        <span class="pill">View attendance</span>
+        <span class="pill">Track history</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="section" id="overview">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Student workspace</p>
+            <h2>See your class, exams, results, and attendance.</h2>
+        </div>
+        <div class="hint">No online exams; view-only access.</div>
+    </div>
+    <div class="metrics-grid">
+        <div class="metric">
+            <p class="stat-label">Current class</p>
+            <p class="stat-value">Grade 10 - B</p>
+            <span class="tag success">2025 / 2026</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Upcoming exams</p>
+            <p class="stat-value">2</p>
+            <span class="tag accent">Stay prepared</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Published results</p>
+            <p class="stat-value">5</p>
+            <span class="tag success">Live</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Absences</p>
+            <p class="stat-value">1</p>
+            <span class="tag accent">Check attendance</span>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="class">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Current enrollment</p>
+            <h2>Your academic year and class details.</h2>
+        </div>
+        <div class="hint">Admin-managed; read-only for students.</div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <span>Enrollment</span>
+            <div class="chip">View</div>
+        </div>
+        <div class="enrollment">
+            <div>
+                <p class="title">Academic year</p>
+                <p class="subtitle">2025 / 2026</p>
+            </div>
+            <div>
+                <p class="title">Class</p>
+                <p class="subtitle">Grade 10 - Section B</p>
+            </div>
+            <div>
+                <p class="title">Class advisor</p>
+                <p class="subtitle">Rayden Chen</p>
+            </div>
+            <div>
+                <p class="title">Subjects</p>
+                <p class="subtitle">Physics, Math, English, History, PE</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="exams">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Upcoming exams</p>
+            <h2>Assigned by admin to your class.</h2>
+        </div>
+        <div class="hint">Teachers will publish results when ready.</div>
+    </div>
+    <div class="table-scroll">
+        <table class="table compact">
+            <thead>
+                <tr>
+                    <th>Exam</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Max marks</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Mid Term</td>
+                    <td>Physics</td>
+                    <td>12 Nov</td>
+                    <td>100</td>
+                    <td><span class="tag accent">Scheduled</span></td>
+                </tr>
+                <tr>
+                    <td>Unit Test 2</td>
+                    <td>English</td>
+                    <td>18 Nov</td>
+                    <td>50</td>
+                    <td><span class="tag accent">Scheduled</span></td>
+                </tr>
+                <tr>
+                    <td>Finals</td>
+                    <td>Mathematics</td>
+                    <td>02 Dec</td>
+                    <td>100</td>
+                    <td><span class="tag muted">Awaiting schedule</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section" id="results">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Results</p>
+            <h2>Published scores and attendance per exam.</h2>
+        </div>
+        <div class="hint">Only visible after teacher publishes.</div>
+    </div>
+    <div class="grid two">
+        <div class="card">
+            <div class="card-header">
+                <span>Current year results</span>
+                <div class="chip">Live</div>
+            </div>
+            <div class="table-scroll">
+                <table class="table compact">
+                    <thead>
+                        <tr>
+                            <th>Exam</th>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Attendance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mid Term</td>
+                            <td>Physics</td>
+                            <td>78 / 100</td>
+                            <td><span class="tag success">Present</span></td>
+                            <td><span class="tag success">Published</span></td>
+                        </tr>
+                        <tr>
+                            <td>Unit Test 2</td>
+                            <td>English</td>
+                            <td>-</td>
+                            <td><span class="tag accent">Absent</span></td>
+                            <td><span class="tag accent">Awaiting</span></td>
+                        </tr>
+                        <tr>
+                            <td>Finals</td>
+                            <td>Mathematics</td>
+                            <td>-</td>
+                            <td><span class="tag muted">Pending</span></td>
+                            <td><span class="tag muted">Not published</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <span>Attendance log</span>
+                <div class="chip">Per exam</div>
+            </div>
+            <ul class="checklist">
+                <li class="complete">Mid Term - Physics - Present</li>
+                <li class="complete">Unit Test 1 - Math - Present</li>
+                <li class="complete">Unit Test 2 - English - Absent</li>
+                <li>Finals - Mathematics - Pending</li>
+            </ul>
+            <div class="hint-box">Super Admins and Teachers update attendance; students view only.</div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="history">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Previous academic years</p>
+            <h2>See past results across years.</h2>
+        </div>
+        <div class="hint">Read-only history, not editable.</div>
+    </div>
+    <div class="history">
+        <div class="history-item">
+            <div>
+                <p class="title">2024 / 2025</p>
+                <p class="subtitle">Grade 9 - Section A</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-value">84%</p>
+                <p class="stat-label">Overall average</p>
+            </div>
+        </div>
+        <div class="history-item muted">
+            <div>
+                <p class="title">2023 / 2024</p>
+                <p class="subtitle">Grade 8 - Section C</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-value">Stored</p>
+                <p class="stat-label">Archived</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
