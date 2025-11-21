@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - CEMS{% endblock %}
+
+{% block topbar %}
+<div class="brand">
+    <span class="brand-mark">C</span>
+    <div class="brand-text">
+        <strong>CEMS</strong>
+        <small>Class & Exam Management</small>
+    </div>
+</div>
+<div class="top-actions">
+    <div class="status-dot online"></div>
+    <span class="status-label">Logged in as Teacher</span>
+    <div class="chip">Teacher</div>
+    <a class="btn ghost" href="{% url 'accounts:logout' %}">Logout</a>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-group">
+    <p class="sidebar-label">Teacher</p>
+    <nav class="menu">
+        <a href="#overview" class="menu-link active">Overview</a>
+        <a href="#classes" class="menu-link">Classes</a>
+        <a href="#exams" class="menu-link">Exams</a>
+        <a href="#marks" class="menu-link">Mark entry</a>
+        <a href="#history" class="menu-link">History</a>
+    </nav>
+</div>
+<div class="sidebar-group muted">
+    <p class="sidebar-label">Limits</p>
+    <div class="pill-list">
+        <span class="pill">No exam creation</span>
+        <span class="pill">Only assigned classes</span>
+        <span class="pill">Publish own results</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="section" id="overview">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Teacher workspace</p>
+            <h2>See assigned classes, exams, and publish your results.</h2>
+        </div>
+        <div class="hint">Role-locked to your classes and subjects.</div>
+    </div>
+    <div class="metrics-grid">
+        <div class="metric">
+            <p class="stat-label">Assigned classes</p>
+            <p class="stat-value">3</p>
+            <span class="tag success">Up to date</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Upcoming exams</p>
+            <p class="stat-value">2</p>
+            <span class="tag accent">Admin assigned</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Pending results</p>
+            <p class="stat-value">1</p>
+            <span class="tag accent">Publish</span>
+        </div>
+        <div class="metric">
+            <p class="stat-label">Previous years</p>
+            <p class="stat-value">2</p>
+            <span class="tag muted">Read-only</span>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="classes">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Classes & subjects</p>
+            <h2>Your teaching assignments for this academic year.</h2>
+        </div>
+        <div class="hint">Driven by admin teacher_assignment table.</div>
+    </div>
+    <div class="table-scroll">
+        <table class="table compact">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Academic year</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Grade 10 - B</td>
+                    <td>Physics</td>
+                    <td>2025 / 2026</td>
+                    <td><span class="tag success">Active</span></td>
+                </tr>
+                <tr>
+                    <td>Grade 9 - A</td>
+                    <td>English</td>
+                    <td>2025 / 2026</td>
+                    <td><span class="tag success">Active</span></td>
+                </tr>
+                <tr>
+                    <td>Grade 8 - C</td>
+                    <td>Mathematics</td>
+                    <td>2024 / 2025</td>
+                    <td><span class="tag muted">Archived</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section" id="exams">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Exams</p>
+            <h2>Admin-assigned exams for your classes.</h2>
+        </div>
+        <div class="hint">View-only; you enter marks and publish.</div>
+    </div>
+    <div class="grid two">
+        <div class="card">
+            <div class="card-header">
+                <span>Upcoming exams</span>
+                <div class="chip">Assigned</div>
+            </div>
+            <div class="table-scroll">
+                <table class="table compact">
+                    <thead>
+                        <tr>
+                            <th>Exam</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                            <th>Max</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mid Term - Physics</td>
+                            <td>Grade 10 - B</td>
+                            <td>12 Nov</td>
+                            <td>100</td>
+                            <td><span class="tag accent">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>Unit Test 2 - English</td>
+                            <td>Grade 9 - A</td>
+                            <td>18 Nov</td>
+                            <td>50</td>
+                            <td><span class="tag accent">Awaiting marks</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <span>Notifications</span>
+                <div class="chip">Security</div>
+            </div>
+            <ul class="checklist">
+                <li class="complete">Role-based access enabled</li>
+                <li>Publish results for your exams only</li>
+                <li>Cannot edit exams by other teachers</li>
+                <li>Past-year records are read-only</li>
+            </ul>
+            <div class="hint-box">Use the mark entry table to save drafts, then publish when done.</div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="marks">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Mark entry</p>
+            <h2>Enter marks and mark absentees.</h2>
+        </div>
+        <div class="hint">Draft before publishing.</div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <span>Mid Term - Physics (Grade 10 - B)</span>
+            <div class="chip">Teacher-only</div>
+        </div>
+        <div class="table-scroll">
+            <table class="table compact">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Score</th>
+                        <th>Attendance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+            <tbody>
+                <tr>
+                    <td>Aisha Rahman</td>
+                    <td><input type="number" value="88" class="inline-input"></td>
+                    <td><span class="tag success">Present</span></td>
+                    <td><button class="link-btn">Save</button></td>
+                </tr>
+                <tr>
+                    <td>Dev Malik</td>
+                    <td><input type="number" placeholder="0-100" class="inline-input"></td>
+                    <td><span class="tag accent">Absent</span></td>
+                    <td><button class="link-btn">Mark absent</button></td>
+                </tr>
+                <tr>
+                    <td>Rida Ansari</td>
+                    <td><input type="number" value="74" class="inline-input"></td>
+                    <td><span class="tag success">Present</span></td>
+                    <td><button class="link-btn">Save</button></td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        <div class="form-footer spaced">
+            <button class="btn secondary">Save draft</button>
+            <button class="btn primary">Publish results</button>
+            <span class="helper">Publishing exposes marks to students.</span>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="history">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">History</p>
+            <h2>Previous academic years for your subjects.</h2>
+        </div>
+        <div class="hint">View-only snapshots to compare performance.</div>
+    </div>
+    <div class="history">
+        <div class="history-item">
+            <div>
+                <p class="title">2024 / 2025 - English</p>
+                <p class="subtitle">Finals - Published</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-value">82%</p>
+                <p class="stat-label">Avg score</p>
+            </div>
+        </div>
+        <div class="history-item">
+            <div>
+                <p class="title">2023 / 2024 - Mathematics</p>
+                <p class="subtitle">Archived</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-value">Stored</p>
+                <p class="stat-label">Read-only</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
