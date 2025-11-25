@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Max, Q
 from accounts.models import TeacherProfile, StudentProfile
 
 
@@ -75,6 +76,7 @@ class StudentEnrollment(models.Model):
     class_level = models.ForeignKey(ClassLevel, on_delete=models.CASCADE, related_name="enrollments")
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="enrollments")
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default="current")
+    roll_number = models.PositiveIntegerField(null=True, blank=True)
     enrolled_on = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -82,6 +84,33 @@ class StudentEnrollment(models.Model):
     class Meta:
         unique_together = ("student", "class_level", "academic_year")
         ordering = ["academic_year", "class_level", "student"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["class_level", "academic_year", "roll_number"],
+                condition=Q(roll_number__isnull=False),
+                name="unique_roll_per_class_year",
+            )
+        ]
 
     def __str__(self):
         return f"{self.student} -> {self.class_level} ({self.academic_year})"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if (
+            is_new
+            and self.roll_number is None
+            and self.class_level_id
+            and self.academic_year_id
+        ):
+            max_roll = (
+                StudentEnrollment.objects.filter(
+                    class_level=self.class_level, academic_year=self.academic_year
+                ).aggregate(Max("roll_number"))
+            ).get("roll_number__max") or 0
+            self.roll_number = max_roll + 1
+
+        super().save(*args, **kwargs)
+
+        if is_new and self.roll_number and self.student_id:
+            StudentProfile.objects.filter(pk=self.student_id).update(roll_number=self.roll_number)

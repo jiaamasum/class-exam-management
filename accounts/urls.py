@@ -7,6 +7,12 @@ from .forms import EmailExistsPasswordResetForm
 app_name = 'accounts'
 
 urlpatterns = [
+    # Home and dashboards
+    path('', views.home, name='home'),
+    path('home/', views.catch_home, name='catch_home'),
+    path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/student/', views.student_dashboard, name='student_dashboard'),
+
     # Login and Logout
     path('login/', views.CEMSLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
