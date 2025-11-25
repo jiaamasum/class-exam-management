@@ -7,12 +7,12 @@
     <span class="brand-mark">C</span>
     <div class="brand-text">
         <strong>CEMS</strong>
-        <small>Class & Exam Management</small>
+        <small>Teacher workspace</small>
     </div>
 </div>
 <div class="top-actions">
     <div class="status-dot online"></div>
-    <span class="status-label">Logged in as Teacher</span>
+    <span class="status-label">Logged in as {{ request.user.username }} | {{ teacher.employee_code|default:"N/A" }}</span>
     <div class="chip">Teacher</div>
     <a class="btn ghost" href="{% url 'accounts:logout' %}">Logout</a>
 </div>
@@ -25,49 +25,58 @@
         <a href="#overview" class="menu-link active">Overview</a>
         <a href="#classes" class="menu-link">Classes</a>
         <a href="#exams" class="menu-link">Exams</a>
-        <a href="#marks" class="menu-link">Mark entry</a>
-        <a href="#history" class="menu-link">History</a>
+        <a href="#admit" class="menu-link">Admission</a>
     </nav>
 </div>
 <div class="sidebar-group muted">
     <p class="sidebar-label">Limits</p>
     <div class="pill-list">
-        <span class="pill">No exam creation</span>
-        <span class="pill">Only assigned classes</span>
-        <span class="pill">Publish own results</span>
+        <span class="pill">Assigned classes only</span>
+        <span class="pill">No student creation</span>
+        <span class="pill">Own exams only</span>
     </div>
 </div>
 {% endblock %}
 
 {% block content %}
-<section class="section" id="overview">
-    <div class="section-header">
-        <div>
-            <p class="eyebrow">Teacher workspace</p>
-            <h2>See assigned classes, exams, and publish your results.</h2>
-        </div>
-        <div class="hint">Role-locked to your classes and subjects.</div>
+<style>
+    .actions-wrap { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .stats-wrap { display: flex; gap: 0.35rem; flex-wrap: wrap; align-items: center; }
+    .inline-form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+    .inline-form-row label { display: flex; flex-direction: column; gap: 0.25rem; min-width: 200px; margin: 0; }
+    .inline-form-row .grow { flex: 1 1 240px; }
+    .inline-actions { display: flex; flex-direction: column; gap: 0.2rem; }
+</style>
+
+{% if messages %}
+<div class="alert-stack">
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="section hero" id="overview">
+    <div>
+        <p class="eyebrow">Welcome back, {{ request.user.first_name|default:request.user.username }}</p>
+        <h1 class="hero-title">A clean workspace for your classes, students, and exams.</h1>
+        <p class="muted">Navigate by cards below—each action opens a focused page so you never get lost. Employee ID: {{ teacher.employee_code|default:"N/A" }}</p>
     </div>
-    <div class="metrics-grid">
+    <div class="hero-stats">
         <div class="metric">
-            <p class="stat-label">Assigned classes</p>
-            <p class="stat-value">3</p>
-            <span class="tag success">Up to date</span>
+            <p class="stat-label">Classes</p>
+            <p class="stat-value">{{ class_count }}</p>
+            <span class="tag success">Assigned</span>
         </div>
         <div class="metric">
-            <p class="stat-label">Upcoming exams</p>
-            <p class="stat-value">2</p>
-            <span class="tag accent">Admin assigned</span>
+            <p class="stat-label">Subjects</p>
+            <p class="stat-value">{{ subject_count }}</p>
+            <span class="tag accent">Mapped</span>
         </div>
         <div class="metric">
-            <p class="stat-label">Pending results</p>
-            <p class="stat-value">1</p>
-            <span class="tag accent">Publish</span>
-        </div>
-        <div class="metric">
-            <p class="stat-label">Previous years</p>
-            <p class="stat-value">2</p>
-            <span class="tag muted">Read-only</span>
+            <p class="stat-label">Exams</p>
+            <p class="stat-value">{{ teacher_exams|length }}</p>
+            <span class="tag muted">Owned</span>
         </div>
     </div>
 </section>
@@ -75,40 +84,47 @@
 <section class="section" id="classes">
     <div class="section-header">
         <div>
-            <p class="eyebrow">Classes & subjects</p>
-            <h2>Your teaching assignments for this academic year.</h2>
+            <p class="eyebrow">Assigned classes</p>
+            <h2>Quick actions per class.</h2>
         </div>
-        <div class="hint">Driven by admin teacher_assignment table.</div>
+        <div class="hint">Students and subjects open in focused pages.</div>
     </div>
-    <div class="table-scroll">
+    <div class="table-scroll card">
         <table class="table compact">
             <thead>
                 <tr>
                     <th>Class</th>
-                    <th>Subject</th>
-                    <th>Academic year</th>
-                    <th>Status</th>
+                    <th>Students</th>
+                    <th>Subjects</th>
+                    <th>Year</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
+                {% for row in class_rows %}
+                {% with cls=row.class_level %}
                 <tr>
-                    <td>Grade 10 - B</td>
-                    <td>Physics</td>
-                    <td>2025 / 2026</td>
-                    <td><span class="tag success">Active</span></td>
+                    <td>{{ cls.name }}{% if cls.section %} - {{ cls.section }}{% endif %}</td>
+                    <td>{{ row.student_count|default:"0" }}</td>
+                    <td>
+                        {% if row.subjects %}
+                            {% for subj in row.subjects %}{{ subj.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% else %}
+                            <span class="muted">No subjects yet</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ cls.academic_year }}</td>
+                    <td class="actions">
+                        <div class="actions-wrap">
+                            <a class="btn ghost" href="{% url 'academics:teacher_class_students' cls.id %}">Students</a>
+                            <a class="btn secondary" href="{% url 'academics:teacher_class_subjects' cls.id %}">Subjects</a>
+                        </div>
+                    </td>
                 </tr>
-                <tr>
-                    <td>Grade 9 - A</td>
-                    <td>English</td>
-                    <td>2025 / 2026</td>
-                    <td><span class="tag success">Active</span></td>
-                </tr>
-                <tr>
-                    <td>Grade 8 - C</td>
-                    <td>Mathematics</td>
-                    <td>2024 / 2025</td>
-                    <td><span class="tag muted">Archived</span></td>
-                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr><td colspan="5" class="muted">No class assignments yet.</td></tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -118,144 +134,89 @@
     <div class="section-header">
         <div>
             <p class="eyebrow">Exams</p>
-            <h2>Admin-assigned exams for your classes.</h2>
+            <h2>See all exams you own with quick stats.</h2>
         </div>
-        <div class="hint">View-only; you enter marks and publish.</div>
+        <div class="actions">
+            <a class="btn primary" href="{% url 'exams:teacher_exam_create' %}">Create exam</a>
+        </div>
     </div>
-    <div class="grid two">
-        <div class="card">
-            <div class="card-header">
-                <span>Upcoming exams</span>
-                <div class="chip">Assigned</div>
-            </div>
-            <div class="table-scroll">
-                <table class="table compact">
-                    <thead>
-                        <tr>
-                            <th>Exam</th>
-                            <th>Class</th>
-                            <th>Date</th>
-                            <th>Max</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Mid Term - Physics</td>
-                            <td>Grade 10 - B</td>
-                            <td>12 Nov</td>
-                            <td>100</td>
-                            <td><span class="tag accent">Pending</span></td>
-                        </tr>
-                        <tr>
-                            <td>Unit Test 2 - English</td>
-                            <td>Grade 9 - A</td>
-                            <td>18 Nov</td>
-                            <td>50</td>
-                            <td><span class="tag accent">Awaiting marks</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <span>Notifications</span>
-                <div class="chip">Security</div>
-            </div>
-            <ul class="checklist">
-                <li class="complete">Role-based access enabled</li>
-                <li>Publish results for your exams only</li>
-                <li>Cannot edit exams by other teachers</li>
-                <li>Past-year records are read-only</li>
-            </ul>
-            <div class="hint-box">Use the mark entry table to save drafts, then publish when done.</div>
-        </div>
+    <div class="table-scroll card">
+        <table class="table compact">
+            <thead>
+                <tr>
+                    <th>Exam</th>
+                    <th>Class</th>
+                    <th>Date</th>
+                    <th>Marks</th>
+                    <th>Stats</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in teacher_exams %}
+                <tr>
+                    <td>{{ exam.title }}</td>
+                    <td>{{ exam.class_level }}</td>
+                    <td>{{ exam.exam_date|default:"—" }}</td>
+                    <td>{{ exam.max_marks }}</td>
+                    <td>
+                        <div class="stats-wrap">
+                            <span class="pill">Taken {{ exam.result_count|default:0 }}</span>
+                            <span class="pill">High {{ exam.highest|floatformat:2|default:"—" }}</span>
+                            <span class="pill">Low {{ exam.lowest|floatformat:2|default:"—" }}</span>
+                            <span class="pill">Avg {{ exam.average|floatformat:2|default:"—" }}</span>
+                        </div>
+                    </td>
+                    <td class="actions">
+                        <div class="actions-wrap">
+                            <a class="btn ghost" href="{% url 'exams:teacher_exam_manage' exam.id %}">Manage</a>
+                            <a class="btn secondary" href="{% url 'exams:teacher_exam_results' exam.id %}">Results</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="muted">No exams yet. Create one above.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </section>
 
-<section class="section" id="marks">
+<section class="section" id="admit">
     <div class="section-header">
         <div>
-            <p class="eyebrow">Mark entry</p>
-            <h2>Enter marks and mark absentees.</h2>
+            <p class="eyebrow">Student admission</p>
+            <h2>Admit an existing student to one of your classes.</h2>
         </div>
-        <div class="hint">Draft before publishing.</div>
+        <div class="hint">Search by student ID or name; only your classes are listed.</div>
     </div>
     <div class="card">
-        <div class="card-header">
-            <span>Mid Term - Physics (Grade 10 - B)</span>
-            <div class="chip">Teacher-only</div>
-        </div>
-        <div class="table-scroll">
-            <table class="table compact">
-                <thead>
-                    <tr>
-                        <th>Student</th>
-                        <th>Score</th>
-                        <th>Attendance</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-            <tbody>
-                <tr>
-                    <td>Aisha Rahman</td>
-                    <td><input type="number" value="88" class="inline-input"></td>
-                    <td><span class="tag success">Present</span></td>
-                    <td><button class="link-btn">Save</button></td>
-                </tr>
-                <tr>
-                    <td>Dev Malik</td>
-                    <td><input type="number" placeholder="0-100" class="inline-input"></td>
-                    <td><span class="tag accent">Absent</span></td>
-                    <td><button class="link-btn">Mark absent</button></td>
-                </tr>
-                <tr>
-                    <td>Rida Ansari</td>
-                    <td><input type="number" value="74" class="inline-input"></td>
-                    <td><span class="tag success">Present</span></td>
-                    <td><button class="link-btn">Save</button></td>
-                </tr>
-            </tbody>
-            </table>
-        </div>
-        <div class="form-footer spaced">
-            <button class="btn secondary">Save draft</button>
-            <button class="btn primary">Publish results</button>
-            <span class="helper">Publishing exposes marks to students.</span>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="history">
-    <div class="section-header">
-        <div>
-            <p class="eyebrow">History</p>
-            <h2>Previous academic years for your subjects.</h2>
-        </div>
-        <div class="hint">View-only snapshots to compare performance.</div>
-    </div>
-    <div class="history">
-        <div class="history-item">
-            <div>
-                <p class="title">2024 / 2025 - English</p>
-                <p class="subtitle">Finals - Published</p>
+        {% if assigned_classes %}
+        <form method="post" class="inline-form-row">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="enroll_student">
+            <label>
+                <span class="label">Class (assigned)</span>
+                <select name="class_id" required>
+                    {% for cls in assigned_classes %}
+                    <option value="{{ cls.id }}">{{ cls.name }}{% if cls.section %} - {{ cls.section }}{% endif %} ({{ cls.academic_year }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="grow">
+                <span class="label">Student ID or name</span>
+                <input type="text" name="student_identifier" placeholder="225002001 or username" required>
+            </label>
+            <div class="inline-actions">
+                <button class="btn primary" type="submit">Admit to class</button>
+                <span class="helper">Search by student_id, username, or name.</span>
             </div>
-            <div class="stat-box">
-                <p class="stat-value">82%</p>
-                <p class="stat-label">Avg score</p>
-            </div>
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <p>No assigned classes available yet.</p>
         </div>
-        <div class="history-item">
-            <div>
-                <p class="title">2023 / 2024 - Mathematics</p>
-                <p class="subtitle">Archived</p>
-            </div>
-            <div class="stat-box">
-                <p class="stat-value">Stored</p>
-                <p class="stat-label">Read-only</p>
-            </div>
-        </div>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Exam Results - {{ exam.title }}{% endblock %}
+
+{% block topbar %}
+<div class="brand">
+    <span class="brand-mark">C</span>
+    <div class="brand-text">
+        <strong>CEMS</strong>
+        <small>Exam results</small>
+    </div>
+</div>
+<div class="top-actions">
+    <div class="status-dot online"></div>
+    <span class="status-label">Logged in as {{ request.user.username }}</span>
+    <div class="chip">Teacher</div>
+    <a class="btn ghost" href="{% url 'academics:teacher_dashboard' %}">Back to dashboard</a>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-group">
+    <p class="sidebar-label">Exam</p>
+    <nav class="menu">
+        <a href="{% url 'academics:teacher_dashboard' %}" class="menu-link">Exams</a>
+        <a href="{% url 'exams:teacher_exam_manage' exam.id %}" class="menu-link">Manage marks</a>
+        <a href="#" class="menu-link active">Results</a>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Results</p>
+            <h2>{{ exam.title }} — {{ exam.class_level }} — {{ exam.subject }}</h2>
+        </div>
+        <div class="hint">Highest {{ stats.highest|default:"—" }} | Lowest {{ stats.lowest|default:"—" }} | Avg {{ stats.average|default:"—" }} | Total {{ stats.total|default:0 }}</div>
+    </div>
+
+    <div class="card">
+        <div class="table-scroll">
+            <table class="table compact">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>ID</th>
+                        <th>Marks</th>
+                        <th>Attendance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.student.user.get_full_name|default:result.student.user.username }}</td>
+                        <td>{{ result.student.student_id|default:"N/A" }}</td>
+                        <td>{{ result.marks_obtained|default:"—" }}</td>
+                        <td><span class="tag {% if result.attendance == 'present' %}success{% else %}accent{% endif %}">{{ result.get_attendance_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="muted">No results yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

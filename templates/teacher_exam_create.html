@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Create Exam{% endblock %}
+
+{% block topbar %}
+<div class="brand">
+    <span class="brand-mark">C</span>
+    <div class="brand-text">
+        <strong>CEMS</strong>
+        <small>Create exam</small>
+    </div>
+</div>
+<div class="top-actions">
+    <div class="status-dot online"></div>
+    <span class="status-label">Logged in as {{ request.user.username }}</span>
+    <div class="chip">Teacher</div>
+    <a class="btn ghost" href="{% url 'academics:teacher_dashboard' %}">Back to dashboard</a>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-group">
+    <p class="sidebar-label">Exams</p>
+    <nav class="menu">
+        <a href="{% url 'academics:teacher_dashboard' %}" class="menu-link">Exams list</a>
+        <a href="#" class="menu-link active">Create</a>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">New exam</p>
+            <h2>Create an exam for an assigned class-subject.</h2>
+        </div>
+    </div>
+    <div class="card">
+        {% if assignment_pairs %}
+        <form method="post" class="form-grid">
+            {% csrf_token %}
+            <label>
+                <span class="label">Class & subject</span>
+                <select name="class_subject" required>
+                    <option value="">Select</option>
+                    {% for pair in assignment_pairs %}
+                    <option value="{{ pair.value }}">{{ pair.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span class="label">Title</span>
+                <input type="text" name="title" placeholder="Mid Term - Physics" required>
+            </label>
+            <label>
+                <span class="label">Exam date</span>
+                <input type="date" name="exam_date">
+            </label>
+            <label>
+                <span class="label">Max marks</span>
+                <input type="number" name="max_marks" min="1" value="100">
+            </label>
+            <div class="form-footer">
+                <button class="btn primary" type="submit">Create exam</button>
+                <span class="helper">Only for your assigned classes.</span>
+            </div>
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <p>No class/subject assignments yet. Ask admin to assign you.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

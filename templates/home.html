@@ -15,7 +15,7 @@
         <div class="cta-row">
             <a class="btn primary" href="accounts/register/student">Create account</a>
             <a class="btn ghost" href="accounts/login">Login</a>
-              <a class="btn ghost" href="{% url 'accounts:logout' %}">Logout</a>
+             
         </div>
         <div class="tag-row">
             <span class="tag success">Secure authentication</span>
@@ -33,15 +33,15 @@
             </div>
             <div class="stat-pair">
                 <p class="stat-label">Active years</p>
-                <p class="stat-value">03</p>
+                <p class="stat-value">{{ live_stats.active_years|default:"0" }}</p>
             </div>
             <div class="stat-pair">
                 <p class="stat-label">Upcoming exams</p>
-                <p class="stat-value">07</p>
+                <p class="stat-value">{{ live_stats.upcoming_exams|default:"0" }}</p>
             </div>
             <div class="stat-pair">
                 <p class="stat-label">Published results</p>
-                <p class="stat-value">128</p>
+                <p class="stat-value">{{ live_stats.published_results|default:"0" }}</p>
             </div>
             <div class="pill-list">
                 <span class="pill">Admin control</span>
