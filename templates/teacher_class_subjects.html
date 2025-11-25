@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Subjects - {{ class_level }}{% endblock %}
+
+{% block topbar %}
+<div class="brand">
+    <span class="brand-mark">C</span>
+    <div class="brand-text">
+        <strong>CEMS</strong>
+        <small>Subjects for {{ class_level }}</small>
+    </div>
+</div>
+<div class="top-actions">
+    <div class="status-dot online"></div>
+    <span class="status-label">Logged in as {{ request.user.username }}</span>
+    <div class="chip">Teacher</div>
+    <a class="btn ghost" href="{% url 'academics:teacher_dashboard' %}">Back to dashboard</a>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-group">
+    <p class="sidebar-label">Class</p>
+    <nav class="menu">
+        <a href="{% url 'academics:teacher_dashboard' %}" class="menu-link">Dashboard</a>
+        <a href="{% url 'academics:teacher_class_students' class_level.id %}" class="menu-link">Students</a>
+        <a href="#" class="menu-link active">Subjects</a>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="section-header">
+        <div>
+            <p class="eyebrow">Subjects</p>
+            <h2>{{ class_level }}</h2>
+        </div>
+        <div class="hint">Academic year: {{ class_level.academic_year }}</div>
+    </div>
+    <div class="card">
+        <div class="table-scroll">
+            <table class="table compact">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subjects %}
+                    <tr>
+                        <td>{{ subject.name }}</td>
+                        <td>{{ subject.code|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="muted">No subjects assigned to you for this class.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -7,12 +7,12 @@
     <span class="brand-mark">C</span>
     <div class="brand-text">
         <strong>CEMS</strong>
-        <small>Class & Exam Management</small>
+        <small>Student workspace</small>
     </div>
 </div>
 <div class="top-actions">
     <div class="status-dot online"></div>
-    <span class="status-label">Logged in as Student</span>
+    <span class="status-label">Logged in as {{ request.user.username }} | {{ student.student_id|default:"N/A" }}</span>
     <div class="chip">Student</div>
     <a class="btn ghost" href="{% url 'accounts:logout' %}">Logout</a>
 </div>
@@ -40,33 +40,43 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .pill-group {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+</style>
+
 <section class="section" id="overview">
     <div class="section-header">
         <div>
             <p class="eyebrow">Student workspace</p>
             <h2>See your class, exams, results, and attendance.</h2>
         </div>
-        <div class="hint">No online exams; view-only access.</div>
+        <div class="hint">View-only access. ID: {{ student.student_id|default:"N/A" }}</div>
     </div>
     <div class="metrics-grid">
         <div class="metric">
             <p class="stat-label">Current class</p>
-            <p class="stat-value">Grade 10 - B</p>
-            <span class="tag success">2025 / 2026</span>
+            <p class="stat-value">
+                {% if current_class %}{{ current_class.name }}{% if current_class.section %} - {{ current_class.section }}{% endif %}{% else %}—{% endif %}
+            </p>
+            <span class="tag success">{% if current_year %}{{ current_year }}{% else %}No year{% endif %}</span>
         </div>
         <div class="metric">
             <p class="stat-label">Upcoming exams</p>
-            <p class="stat-value">2</p>
+            <p class="stat-value">{{ metrics.upcoming }}</p>
             <span class="tag accent">Stay prepared</span>
         </div>
         <div class="metric">
             <p class="stat-label">Published results</p>
-            <p class="stat-value">5</p>
+            <p class="stat-value">{{ metrics.published }}</p>
             <span class="tag success">Live</span>
         </div>
         <div class="metric">
             <p class="stat-label">Absences</p>
-            <p class="stat-value">1</p>
+            <p class="stat-value">{{ metrics.absences }}</p>
             <span class="tag accent">Check attendance</span>
         </div>
     </div>
@@ -88,19 +98,25 @@
         <div class="enrollment">
             <div>
                 <p class="title">Academic year</p>
-                <p class="subtitle">2025 / 2026</p>
+                <p class="subtitle">{% if current_year %}{{ current_year }}{% else %}Not assigned{% endif %}</p>
             </div>
             <div>
                 <p class="title">Class</p>
-                <p class="subtitle">Grade 10 - Section B</p>
+                <p class="subtitle">{% if current_class %}{{ current_class.name }}{% if current_class.section %} - {{ current_class.section }}{% endif %}{% else %}Not assigned{% endif %}</p>
             </div>
             <div>
-                <p class="title">Class advisor</p>
-                <p class="subtitle">Rayden Chen</p>
+                <p class="title">Roll number</p>
+                <p class="subtitle">{% if current_enrollment and current_enrollment.roll_number %}{{ current_enrollment.roll_number }}{% else %}Not set{% endif %}</p>
             </div>
             <div>
                 <p class="title">Subjects</p>
-                <p class="subtitle">Physics, Math, English, History, PE</p>
+                <p class="subtitle">
+                    {% if subjects %}
+                        {% for subj in subjects %}{{ subj.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </p>
             </div>
         </div>
     </div>
@@ -110,7 +126,7 @@
     <div class="section-header">
         <div>
             <p class="eyebrow">Upcoming exams</p>
-            <h2>Assigned by admin to your class.</h2>
+            <h2>Assigned to your class.</h2>
         </div>
         <div class="hint">Teachers will publish results when ready.</div>
     </div>
@@ -126,27 +142,17 @@
                 </tr>
             </thead>
             <tbody>
+                {% for exam in upcoming_exams %}
                 <tr>
-                    <td>Mid Term</td>
-                    <td>Physics</td>
-                    <td>12 Nov</td>
-                    <td>100</td>
-                    <td><span class="tag accent">Scheduled</span></td>
+                    <td>{{ exam.title }}</td>
+                    <td>{{ exam.subject.name }}</td>
+                    <td>{% if exam.exam_date %}{{ exam.exam_date }}{% else %}TBD{% endif %}</td>
+                    <td>{{ exam.max_marks }}</td>
+                    <td><span class="tag accent">{% if exam.exam_date %}Scheduled{% else %}Pending date{% endif %}</span></td>
                 </tr>
-                <tr>
-                    <td>Unit Test 2</td>
-                    <td>English</td>
-                    <td>18 Nov</td>
-                    <td>50</td>
-                    <td><span class="tag accent">Scheduled</span></td>
-                </tr>
-                <tr>
-                    <td>Finals</td>
-                    <td>Mathematics</td>
-                    <td>02 Dec</td>
-                    <td>100</td>
-                    <td><span class="tag muted">Awaiting schedule</span></td>
-                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="muted">No upcoming exams yet.</td></tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -164,7 +170,7 @@
         <div class="card">
             <div class="card-header">
                 <span>Current year results</span>
-                <div class="chip">Live</div>
+                <div class="chip">View-only</div>
             </div>
             <div class="table-scroll">
                 <table class="table compact">
@@ -178,27 +184,17 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for res in results %}
                         <tr>
-                            <td>Mid Term</td>
-                            <td>Physics</td>
-                            <td>78 / 100</td>
-                            <td><span class="tag success">Present</span></td>
-                            <td><span class="tag success">Published</span></td>
+                            <td>{{ res.exam.title }}</td>
+                            <td>{{ res.exam.subject.name }}</td>
+                            <td>{% if res.marks_obtained != None %}{{ res.marks_obtained }} / {{ res.exam.max_marks }}{% else %}—{% endif %}</td>
+                            <td><span class="tag {% if res.attendance == 'present' %}success{% else %}accent{% endif %}">{{ res.get_attendance_display }}</span></td>
+                            <td><span class="tag {% if res.published %}success{% else %}muted{% endif %}">{% if res.published %}Published{% else %}Pending{% endif %}</span></td>
                         </tr>
-                        <tr>
-                            <td>Unit Test 2</td>
-                            <td>English</td>
-                            <td>-</td>
-                            <td><span class="tag accent">Absent</span></td>
-                            <td><span class="tag accent">Awaiting</span></td>
-                        </tr>
-                        <tr>
-                            <td>Finals</td>
-                            <td>Mathematics</td>
-                            <td>-</td>
-                            <td><span class="tag muted">Pending</span></td>
-                            <td><span class="tag muted">Not published</span></td>
-                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="muted">No results published yet.</td></tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -209,13 +205,54 @@
                 <div class="chip">Per exam</div>
             </div>
             <ul class="checklist">
-                <li class="complete">Mid Term - Physics - Present</li>
-                <li class="complete">Unit Test 1 - Math - Present</li>
-                <li class="complete">Unit Test 2 - English - Absent</li>
-                <li>Finals - Mathematics - Pending</li>
+                {% for res in results %}
+                <li class="{% if res.attendance == 'present' %}complete{% endif %}">
+                    {{ res.exam.title }} - {{ res.exam.subject.name }} - {{ res.get_attendance_display }}
+                </li>
+                {% empty %}
+                <li>No attendance records yet.</li>
+                {% endfor %}
             </ul>
-            <div class="hint-box">Super Admins and Teachers update attendance; students view only.</div>
+            <div class="hint-box">Only teachers/admin update attendance; students view only.</div>
         </div>
+    </div>
+
+    <div class="section-header" style="margin-top:1.5rem;">
+        <div>
+            <p class="eyebrow">Past results</p>
+            <h2>See exams from previous years.</h2>
+        </div>
+        <div class="hint">Includes all published exams across years.</div>
+    </div>
+    <div class="table-scroll card">
+        <table class="table compact">
+            <thead>
+                <tr>
+                    <th>Exam</th>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th>Year</th>
+                    <th>Score</th>
+                    <th>Attendance</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in all_results %}
+                <tr>
+                    <td>{{ res.exam.title }}</td>
+                    <td>{{ res.exam.subject.name }}</td>
+                    <td>{{ res.exam.class_level.name }}{% if res.exam.class_level.section %} - {{ res.exam.class_level.section }}{% endif %}</td>
+                    <td>{{ res.exam.academic_year }}</td>
+                    <td>{% if res.marks_obtained != None %}{{ res.marks_obtained }} / {{ res.exam.max_marks }}{% else %}—{% endif %}</td>
+                    <td><span class="tag {% if res.attendance == 'present' %}success{% else %}accent{% endif %}">{{ res.get_attendance_display }}</span></td>
+                    <td><span class="tag {% if res.published %}success{% else %}muted{% endif %}">{% if res.published %}Published{% else %}Pending{% endif %}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="muted">No past exam records yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </section>
 
@@ -223,31 +260,27 @@
     <div class="section-header">
         <div>
             <p class="eyebrow">Previous academic years</p>
-            <h2>See past results across years.</h2>
+            <h2>See past enrollments.</h2>
         </div>
-        <div class="hint">Read-only history, not editable.</div>
+        <div class="hint">Read-only history.</div>
     </div>
     <div class="history">
-        <div class="history-item">
+        {% for enrollment in history_enrollments %}
+        <div class="history-item {% if enrollment.status != 'current' %}muted{% endif %}">
             <div>
-                <p class="title">2024 / 2025</p>
-                <p class="subtitle">Grade 9 - Section A</p>
+                <p class="title">{{ enrollment.academic_year }}</p>
+                <p class="subtitle">{{ enrollment.class_level.name }}{% if enrollment.class_level.section %} - {{ enrollment.class_level.section }}{% endif %}</p>
             </div>
             <div class="stat-box">
-                <p class="stat-value">84%</p>
-                <p class="stat-label">Overall average</p>
+                <p class="stat-value">{{ enrollment.get_status_display }}</p>
+                <p class="stat-label">Status</p>
             </div>
         </div>
-        <div class="history-item muted">
-            <div>
-                <p class="title">2023 / 2024</p>
-                <p class="subtitle">Grade 8 - Section C</p>
-            </div>
-            <div class="stat-box">
-                <p class="stat-value">Stored</p>
-                <p class="stat-label">Archived</p>
-            </div>
+        {% empty %}
+        <div class="empty-state">
+            <p>No previous enrollments found.</p>
         </div>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}
