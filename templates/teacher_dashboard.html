@@ -25,7 +25,6 @@
         <a href="#overview" class="menu-link active">Overview</a>
         <a href="#classes" class="menu-link">Classes</a>
         <a href="#exams" class="menu-link">Exams</a>
-        <a href="#admit" class="menu-link">Admission</a>
     </nav>
 </div>
 <div class="sidebar-group muted">
@@ -182,41 +181,4 @@
     </div>
 </section>
 
-<section class="section" id="admit">
-    <div class="section-header">
-        <div>
-            <p class="eyebrow">Student admission</p>
-            <h2>Admit an existing student to one of your classes.</h2>
-        </div>
-        <div class="hint">Search by student ID or name; only your classes are listed.</div>
-    </div>
-    <div class="card">
-        {% if assigned_classes %}
-        <form method="post" class="inline-form-row">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="enroll_student">
-            <label>
-                <span class="label">Class (assigned)</span>
-                <select name="class_id" required>
-                    {% for cls in assigned_classes %}
-                    <option value="{{ cls.id }}">{{ cls.name }}{% if cls.section %} - {{ cls.section }}{% endif %} ({{ cls.academic_year }})</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label class="grow">
-                <span class="label">Student ID or name</span>
-                <input type="text" name="student_identifier" placeholder="225002001 or username" required>
-            </label>
-            <div class="inline-actions">
-                <button class="btn primary" type="submit">Admit to class</button>
-                <span class="helper">Search by student_id, username, or name.</span>
-            </div>
-        </form>
-        {% else %}
-        <div class="empty-state">
-            <p>No assigned classes available yet.</p>
-        </div>
-        {% endif %}
-    </div>
-</section>
 {% endblock %}
