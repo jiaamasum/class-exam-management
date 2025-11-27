@@ -1,12 +1,10 @@
-from datetime import date
 from collections import defaultdict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count, Avg, Max, Min
+from django.db.models import Count, Avg, Max, Min
 from django.shortcuts import render, redirect
 
-from accounts.models import StudentProfile
 from academics.models import TeacherAssignment, StudentEnrollment
 from exams.models import Exam
 
@@ -51,53 +49,8 @@ def teacher_dashboard(request):
         )
 
     if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "enroll_student":
-            class_id = request.POST.get("class_id")
-            identifier = (request.POST.get("student_identifier") or "").strip()
-            try:
-                class_id_int = int(class_id)
-            except (TypeError, ValueError):
-                class_id_int = None
-
-            if not class_id_int or class_id_int not in class_map:
-                messages.error(request, "You can only admit students into your assigned classes.")
-                return _redirect_dashboard()
-
-            if not identifier:
-                messages.error(request, "Provide a student ID or username/name to admit.")
-                return _redirect_dashboard()
-
-            student = (
-                StudentProfile.objects.select_related("user")
-                .filter(
-                    Q(student_id__iexact=identifier)
-                    | Q(user__username__iexact=identifier)
-                    | Q(user__first_name__icontains=identifier)
-                    | Q(user__last_name__icontains=identifier)
-                )
-                .first()
-            )
-            if not student:
-                messages.error(request, "No student found for that ID or name.")
-                return _redirect_dashboard()
-
-            class_level = class_map[class_id_int]
-            enrollment, created = StudentEnrollment.objects.get_or_create(
-                student=student,
-                class_level=class_level,
-                academic_year=class_level.academic_year,
-                defaults={"status": "current", "enrolled_on": date.today()},
-            )
-            if created:
-                messages.success(
-                    request,
-                    f"{student.user.get_full_name() or student.user.username} admitted to {class_level} "
-                    f"as roll {enrollment.roll_number}.",
-                )
-            else:
-                messages.info(request, "Student is already enrolled in that class.")
-            return _redirect_dashboard()
+        messages.error(request, "Teachers cannot admit or enroll students into classes.")
+        return _redirect_dashboard()
 
     teacher_exams = (
         Exam.objects.filter(assigned_teacher=teacher)

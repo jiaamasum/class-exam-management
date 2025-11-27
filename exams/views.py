@@ -68,6 +68,9 @@ def teacher_exam_create(request):
             except ValueError:
                 messages.error(request, "Use a valid exam date (YYYY-MM-DD).")
                 return redirect("exams:teacher_exam_create")
+            if exam_date_value < date.today():
+                messages.error(request, "Exam date cannot be in the past.")
+                return redirect("exams:teacher_exam_create")
 
         try:
             max_marks_value = int(max_marks)
